@@ -1,0 +1,26 @@
+
+═══════════════════════════════════════════════════
+  REPORTE DE ANÁLISIS DE RIESGO - GIS ZULIA
+═══════════════════════════════════════════════════
+
+UBICACIÓN:
+  Nombre: San Isidro
+  Tipo: Sector
+  Municipio: Maracaibo
+  Coordenadas: 10.5987°N, 71.6891°W
+
+NIVEL DE RIESGO GENERAL: MODERADO
+
+FACTORES DE RIESGO IDENTIFICADOS (3):
+
+1. Suelo Salinizado [ALTO]
+2. Aguas Estancadas [MEDIO]
+3. Baja Fertilidad [MEDIO]
+
+ANÁLISIS GENERADO POR:
+  Usuario: JeffersonRosales10
+  Rol: Administrador
+  Fecha: 4/2/2026, 10:41:30
+
+═══════════════════════════════════════════════════
+Sistema GIS Risk Zulia - Análisis de Zonas de Riesgo

@@ -1,0 +1,106 @@
+# GUÍA DE INSTALACIÓN - SISTEMA DE RECUPERACIÓN DE CONTRASEÑA
+# GIS Risk Zulia - Windows
+
+## PASO 1: BASE DE DATOS
+# Ejecuta esto en tu cliente PostgreSQL (pgAdmin, DBeaver, o psql):
+
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS password_temporal BOOLEAN DEFAULT FALSE;
+
+## PASO 2: BACKEND - Copiar archivos
+# Coloca estos archivos en las siguientes rutas:
+
+recoveryController.js  →  backend/controllers/recoveryController.js
+recoveryRoutes.js      →  backend/routes/recoveryRoutes.js
+
+## PASO 3: BACKEND - Modificar server.js
+# Abre: backend/server.js
+# Busca donde están las otras rutas (línea ~20-30) y agrega:
+
+const recoveryRoutes = require('./routes/recoveryRoutes');
+
+# Luego busca donde se usan (línea ~40-50) y agrega:
+
+app.use('/api/recovery', recoveryRoutes);
+
+## PASO 4: BACKEND - Modificar authController.js
+# Abre: backend/controllers/authController.js
+# Busca la función login (línea ~160-170)
+# En la respuesta exitosa, modifica el objeto usuario para incluir:
+
+usuario: {
+    id: usuario.id,
+    username: usuario.username,
+    email: usuario.email,
+    rol: usuario.rol,
+    password_temporal: usuario.password_temporal || false  // ← AGREGAR ESTA LÍNEA
+}
+
+## PASO 5: FRONTEND - Copiar archivos
+
+change-password.html  →  frontend/change-password.html
+
+## PASO 6: FRONTEND - Modificar auth.js
+# Abre: frontend/auth.js
+# Busca la función redirectByRole (línea ~366)
+# Reemplaza toda la función con esto:
+
+function redirectByRole(rol) {
+    sessionStorage.setItem('userRole', rol);
+    
+    // Verificar si la contraseña es temporal
+    const user = ApiClient.getUser();
+    if (user && user.password_temporal === true) {
+        window.location.href = 'change-password.html';
+        return;
+    }
+    
+    window.location.href = 'sig-zulia-pro.html';
+}
+
+## PASO 7: CONFIGURAR EMAIL
+# Abre o crea: backend/.env
+# Agrega estas líneas:
+
+EMAIL_USER=tu_email@gmail.com
+EMAIL_PASSWORD=tu_app_password_de_16_caracteres
+
+# IMPORTANTE: Genera Gmail App Password:
+# 1. Ve a: https://myaccount.google.com/security
+# 2. Activa "Verificación en 2 pasos"
+# 3. Ve a "Contraseñas de aplicaciones"
+# 4. Genera una para "Mail"
+# 5. Copia los 16 caracteres
+# 6. Pégala en EMAIL_PASSWORD
+
+## PASO 8: INSTALAR NODEMAILER
+# Abre terminal en la carpeta backend y ejecuta:
+
+npm install nodemailer
+
+## PASO 9: REINICIAR BACKEND
+# En la terminal del backend:
+
+npm start
+
+## PASO 10: PROBAR
+# 1. Abre: http://localhost:5500/auth.html
+# 2. Click en "¿Olvidaste tu contraseña?"
+# 3. Ingresa tu email
+# 4. Revisa tu email
+# 5. Usa la contraseña temporal para login
+# 6. Serás redirigido a change-password.html
+# 7. Crea nueva contraseña
+# 8. ¡Listo!
+
+## CHECKLIST DE INSTALACIÓN
+[ ] Base de datos: columna password_temporal agregada
+[ ] recoveryController.js → backend/controllers/
+[ ] recoveryRoutes.js → backend/routes/
+[ ] server.js modificado (rutas agregadas)
+[ ] authController.js modificado (password_temporal agregado)
+[ ] .env configurado (EMAIL_USER y EMAIL_PASSWORD)
+[ ] nodemailer instalado
+[ ] change-password.html → frontend/
+[ ] auth.js modificado (redirectByRole actualizado)
+[ ] Backend reiniciado
+[ ] Prueba exitosa

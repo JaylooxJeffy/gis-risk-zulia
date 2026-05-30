@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://*.tile.openstreetmap.org https://geocode-api.arcgis.com data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com; connect-src 'self' https://geocode-api.arcgis.com https://*.tile.openstreetmap.org https://cdnjs.cloudflare.com http://localhost:3000;">
+    <title>Sistema GIS Profesional - Estado Zulia</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <link rel="stylesheet" href="sig-pro-styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo-icon">🗺️</div>
+                    <div>
+                        <h1>Sistema de Información Geográfica</h1>
+                        <p class="subtitle">Análisis de Zonas de Riesgo - Estado Zulia, Venezuela</p>
+                    </div>
+                </div>
+                <div class="user-section">
+                    <div class="user-info">
+                        <span class="user-name" id="username-display">Usuario</span>
+                        <span class="user-role" id="role-display">Consultor</span>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn-admin" id="btn-admin-panel" style="display: none;" onclick="goToAdminPanel()">
+                            ⚙️ Panel Admin
+                        </button>
+                        <button class="btn-logout" onclick="handleLogout()">Cerrar Sesión</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="search-panel">
+                <div class="search-section">
+                    <h2>🔍 Búsqueda de Ubicación</h2>
+                    <div class="search-input-wrapper">
+                        <span class="search-icon">📍</span>
+                        <input type="text" id="locationSearch" class="search-input" placeholder="Buscar ubicación en Zulia...">
+                        <div id="locationDropdown" class="location-dropdown"></div>
+                    </div>
+                </div>
+
+                <div class="filters-section">
+                    <div class="filter-group">
+                        <label class="filter-label">Factores de Riesgo</label>
+                        <div id="riskTags" class="tags-container"></div>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Nivel de Severidad</label>
+                        <div id="severityTags" class="tags-container"></div>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Tipo de Impacto</label>
+                        <div id="impactTags" class="tags-container"></div>
+                    </div>
+                    <div id="selectedFiltersSection" class="selected-filters-section" style="display: none;">
+                        <label class="filter-label">Filtros Activos</label>
+                        <div id="selectedTags" class="selected-tags-container"></div>
+                    </div>
+                </div>
+
+                <button class="analyze-btn" onclick="analyzeRisks()" id="analyzeBtn" disabled>
+                    📊 Analizar Zona de Riesgo
+                </button>
+            </div>
+
+            <div class="map-container">
+                <div id="map"></div>
+                <div class="legend">
+                    <h4>📊 Leyenda del Mapa</h4>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #dc2626;"></div>
+                        <span>Riesgo Muy Alto</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #d97706;"></div>
+                        <span>Riesgo Alto</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #f59e0b;"></div>
+                        <span>Riesgo Moderado</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #059669;"></div>
+                        <span>Riesgo Bajo</span>
+                    </div>
+                </div>
+                <div id="resultsPanel" class="results-panel">
+                    <div class="results-header">
+                        <h3>📋 Resultados del Análisis</h3>
+                        <button class="close-btn" onclick="closeResults()">×</button>
+                    </div>
+                    <div id="resultsContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="api-client.js"></script>
+    <script src="sig-pro.js"></script>
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' http://localhost:3000;">
+    <title>Autenticación - GIS Risk Zulia</title>
+    <link rel="stylesheet" href="auth-styles.css">
+</head>
+<body>
+    <div class="animated-background">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+    </div>
+
+    <div class="auth-container">
+        <div class="auth-header">
+            <div class="logo-circle">🗺️</div>
+            <h1>GIS Risk Zulia</h1>
+            <p class="subtitle">Sistema de Información Geográfica</p>
+        </div>
+
+        <div class="auth-tabs">
+            <button class="auth-tab active" data-tab="login">Iniciar Sesión</button>
+            <button class="auth-tab" data-tab="register">Registrarse</button>
+        </div>
+
+        <!-- LOGIN -->
+        <div class="auth-form-container active" id="login-container">
+            <div class="alert info" style="margin-bottom: 20px;">
+                <small>Usa tu email y contraseña para acceder al sistema.</small>
+            </div>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" name="email" placeholder="tu@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Contraseña</label>
+                    <input type="password" id="login-password" name="password" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="auth-btn primary">
+                    <span>Ingresar</span>
+                    <svg class="btn-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M7 3L14 10L7 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <div class="forgot-credentials">
+                    <button type="button" class="link-btn" id="btn-forgot-credentials">
+                        ¿Olvidaste tus datos? Restáuralos aquí
+                    </button>
+                </div>
+                <div id="login-message" class="message"></div>
+            </form>
+        </div>
+
+        <!-- RECUPERACIÓN -->
+        <div class="auth-form-container" id="recovery-container">
+            <form id="recovery-form">
+                <h2 class="form-title">Recuperar Credenciales</h2>
+                <div class="alert info">
+                    Ingresa tu correo electrónico y te enviaremos una contraseña temporal.
+                </div>
+                <div class="form-group">
+                    <label for="recovery-email">Correo Electrónico</label>
+                    <input type="email" id="recovery-email" placeholder="tu@email.com" required>
+                </div>
+                <button type="submit" class="auth-btn primary">
+                    <span>Buscar Cuenta</span>
+                </button>
+                <button type="button" class="auth-btn text" id="btn-back-to-login">
+                    ← Volver al inicio de sesión
+                </button>
+                <div id="recovery-message" class="message"></div>
+            </form>
+
+            <div id="recovery-success" style="display: none;">
+                <div class="success-animation">
+                    <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+                        <circle cx="40" cy="40" r="38" stroke="#10b981" stroke-width="4"/>
+                        <path d="M25 40L35 50L55 30" stroke="#10b981" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <h2 class="form-title">¡Contraseña Enviada!</h2>
+                <div class="alert success">Revisa tu bandeja de entrada.</div>
+                <button type="button" class="auth-btn primary" id="btn-back-to-login-success">
+                    Volver al inicio de sesión
+                </button>
+            </div>
+        </div>
+
+        <!-- REGISTRO -->
+        <div class="auth-form-container" id="register-container">
+            <div class="user-type-selector">
+                <button class="user-type-btn active" data-type="consultor">
+                    <div class="user-icon">👤</div>
+                    <h3>Consultor</h3>
+                    <p>Usuario general</p>
+                </button>
+                <button class="user-type-btn" data-type="analista">
+                    <div class="user-icon">📊</div>
+                    <h3>Analista</h3>
+                    <p>Crear reportes</p>
+                </button>
+                <button class="user-type-btn" data-type="administrador">
+                    <div class="user-icon">⚙️</div>
+                    <h3>Administrador</h3>
+                    <p>Control total</p>
+                </button>
+            </div>
+
+            <form id="register-consultor-form">
+                <h2 class="form-title">Registro de Consultor</h2>
+                <div class="form-group">
+                    <label for="reg-consultor-username">Nombre de Usuario</label>
+                    <input type="text" id="reg-consultor-username" placeholder="usuario123" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg-consultor-email">Email</label>
+                    <input type="email" id="reg-consultor-email" placeholder="tu@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg-consultor-password">Contraseña</label>
+                    <input type="password" id="reg-consultor-password" placeholder="Mínimo 6 caracteres" required>
+                </div>
+                <button type="submit" class="auth-btn primary"><span>Crear Cuenta</span></button>
+                <div id="register-consultor-message" class="message"></div>
+            </form>
+
+            <form id="register-special-form" style="display:none;">
+                <h2 class="form-title">Solicitud de Registro</h2>
+                <div class="alert info">
+                    <strong>ℹ️ Importante:</strong> Tu solicitud será revisada por un administrador.
+                </div>
+                <div class="form-group">
+                    <label for="reg-special-username">Nombre de Usuario</label>
+                    <input type="text" id="reg-special-username" placeholder="usuario123" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg-special-email">Email</label>
+                    <input type="email" id="reg-special-email" placeholder="tu@email.com" required>
+                </div>
+                <input type="hidden" id="reg-special-rol" value="analista">
+                <button type="submit" class="auth-btn secondary"><span>Enviar Solicitud</span></button>
+                <div id="register-special-message" class="message"></div>
+            </form>
+
+            <form id="complete-registration-form" style="display: none;">
+                <h2 class="form-title">Completar Registro</h2>
+                <div class="alert success">
+                    <strong>✅ Solicitud Aprobada</strong><br>
+                    Ingresa el código que recibiste por email.
+                </div>
+                <div class="form-group">
+                    <label for="complete-email">Email</label>
+                    <input type="email" id="complete-email" placeholder="tu@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="complete-code">Código de Acceso</label>
+                    <input type="text" id="complete-code" placeholder="XXXXXXXX" style="text-transform:uppercase;letter-spacing:3px;text-align:center;font-size:18px;" required>
+                </div>
+                <div class="form-group">
+                    <label for="complete-password">Contraseña</label>
+                    <input type="password" id="complete-password" placeholder="Mínimo 6 caracteres" required>
+                </div>
+                <button type="submit" class="auth-btn primary"><span>Crear Cuenta</span></button>
+                <button type="button" class="auth-btn text" id="btn-back-to-solicitud">← Volver a solicitud</button>
+                <div id="complete-registration-message" class="message"></div>
+            </form>
+        </div>
+
+        <a href="index.html" class="back-home">← Volver al Inicio</a>
+    </div>
+
+    <script src="api-client.js"></script>
+    <script src="auth.js"></script>
+    <script src="auth-recovery.js"></script>
+</body>
+</html>

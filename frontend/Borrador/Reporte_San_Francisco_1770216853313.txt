@@ -1,0 +1,27 @@
+
+═══════════════════════════════════════════════════
+  REPORTE DE ANÁLISIS DE RIESGO - GIS ZULIA
+═══════════════════════════════════════════════════
+
+UBICACIÓN:
+  Nombre: San Francisco
+  Tipo: Ciudad
+  Municipio: San Francisco
+  Coordenadas: 10.5856°N, 71.6722°W
+
+NIVEL DE RIESGO GENERAL: ALTO
+
+FACTORES DE RIESGO IDENTIFICADOS (4):
+
+1. Suelo Salinizado [ALTO]
+2. Contaminación Petrolera [ALTO]
+3. Topografía Accidentada [MEDIO]
+4. Deforestación [ALTO]
+
+ANÁLISIS GENERADO POR:
+  Usuario: JeffersonRosales10
+  Rol: Administrador
+  Fecha: 4/2/2026, 10:54:13
+
+═══════════════════════════════════════════════════
+Sistema GIS Risk Zulia - Análisis de Zonas de Riesgo

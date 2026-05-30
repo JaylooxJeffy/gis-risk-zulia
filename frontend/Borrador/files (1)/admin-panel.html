@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - GIS Risk Zulia</title>
+    <link rel="stylesheet" href="admin-panel-styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="admin-header">
+        <div class="header-content">
+            <div class="logo-section">
+                <div class="logo-icon">🗺️</div>
+                <div>
+                    <h1>Panel de Administración</h1>
+                    <p class="subtitle">GIS Risk Zulia</p>
+                </div>
+            </div>
+            <div class="user-section">
+                <div class="user-info">
+                    <span class="user-name" id="admin-username">Admin</span>
+                    <span class="user-role">Administrador</span>
+                </div>
+                <button class="btn-logout" onclick="handleLogout()">Cerrar Sesión</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-section="solicitudes">
+                    <svg class="nav-icon" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Solicitudes Pendientes</span>
+                    <span class="badge" id="badge-pendientes">0</span>
+                </a>
+                
+                <a href="#" class="nav-item" data-section="historial">
+                    <svg class="nav-icon" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Historial de Solicitudes</span>
+                </a>
+                
+                <a href="#" class="nav-item" data-section="usuarios">
+                    <svg class="nav-icon" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Gestión de Usuarios</span>
+                </a>
+                
+                <a href="sig-zulia-pro.html" class="nav-item">
+                    <svg class="nav-icon" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Ir al Sistema GIS</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Sección: Solicitudes Pendientes -->
+            <section id="section-solicitudes" class="content-section active">
+                <div class="section-header">
+                    <h2>Solicitudes Pendientes</h2>
+                    <button class="btn-refresh" onclick="cargarSolicitudesPendientes()">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Actualizar
+                    </button>
+                </div>
+
+                <div id="solicitudes-container" class="cards-container">
+                    <!-- Las solicitudes se cargarán dinámicamente aquí -->
+                </div>
+
+                <div id="empty-state" class="empty-state" style="display: none;">
+                    <svg width="100" height="100" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <h3>No hay solicitudes pendientes</h3>
+                    <p>Todas las solicitudes han sido procesadas</p>
+                </div>
+            </section>
+
+            <!-- Sección: Historial de Solicitudes -->
+            <section id="section-historial" class="content-section">
+                <div class="section-header">
+                    <h2>Historial de Solicitudes</h2>
+                    <button class="btn-refresh" onclick="cargarHistorialSolicitudes()">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Actualizar
+                    </button>
+                </div>
+
+                <div id="historial-container" class="cards-container">
+                    <!-- El historial se cargará dinámicamente aquí -->
+                </div>
+            </section>
+
+            <!-- Sección: Gestión de Usuarios -->
+            <section id="section-usuarios" class="content-section">
+                <div class="section-header">
+                    <h2>Gestión de Usuarios</h2>
+                    <button class="btn-refresh" onclick="cargarUsuarios()">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Actualizar
+                    </button>
+                </div>
+
+                <div id="usuarios-container" class="cards-container">
+                    <!-- Los usuarios se cargarán dinámicamente aquí -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal para Aprobar Solicitud -->
+    <div id="modal-aprobar" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Aprobar Solicitud</h3>
+                <button class="modal-close" onclick="cerrarModal('modal-aprobar')">×</button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro que deseas aprobar esta solicitud?</p>
+                <div class="solicitud-info" id="aprobar-info"></div>
+                <p class="modal-note">Se generará un código de acceso y se enviará por email al solicitante.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal btn-secondary" onclick="cerrarModal('modal-aprobar')">Cancelar</button>
+                <button class="btn-modal btn-primary" id="btn-confirmar-aprobar">Aprobar y Enviar Código</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Rechazar Solicitud -->
+    <div id="modal-rechazar" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Rechazar Solicitud</h3>
+                <button class="modal-close" onclick="cerrarModal('modal-rechazar')">×</button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro que deseas rechazar esta solicitud?</p>
+                <div class="solicitud-info" id="rechazar-info"></div>
+                <p class="modal-note error">Se enviará un email de rechazo al solicitante.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal btn-secondary" onclick="cerrarModal('modal-rechazar')">Cancelar</button>
+                <button class="btn-modal btn-danger" id="btn-confirmar-rechazar">Rechazar Solicitud</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="api-client.js"></script>
+    <script src="admin-panel.js"></script>
+</body>
+</html>

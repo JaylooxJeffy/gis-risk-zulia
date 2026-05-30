@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - GIS Zulia</title>
+</head>
+<body>
+    <h1>✅ TEST DE CARGA</h1>
+    <div id="status"></div>
+    
+    <script src="api-client.js"></script>
+    <script>
+        document.getElementById('status').innerHTML = '<p>✅ HTML cargó correctamente</p>';
+        
+        if (typeof ApiClient !== 'undefined') {
+            document.getElementById('status').innerHTML += '<p>✅ api-client.js cargó correctamente</p>';
+            
+            if (ApiClient.isAuthenticated()) {
+                const user = ApiClient.getUser();
+                document.getElementById('status').innerHTML += `<p>✅ Usuario autenticado: ${user.username} (${user.rol})</p>`;
+                document.getElementById('status').innerHTML += '<p>✅ Todo está funcionando, el problema está en sig-zulia-pro.html</p>';
+            } else {
+                document.getElementById('status').innerHTML += '<p>❌ No hay sesión activa. Por favor haz login primero.</p>';
+            }
+        } else {
+            document.getElementById('status').innerHTML += '<p>❌ api-client.js NO cargó</p>';
+        }
+    </script>
+</body>
+</html>

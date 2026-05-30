@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIG - Búsqueda de Zonas de Riesgo en Maracaibo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🗺️ Sistema de Información Geográfica</h1>
+            <p>Análisis de Zonas de Riesgo Agrícola y Ambiental - Maracaibo, Estado Zulia</p>
+        </header>
+
+        <div class="main-content">
+            <div class="search-panel">
+                <div class="search-section">
+                    <h2>🔍 Búsqueda de Ubicación</h2>
+                    <div class="search-input-group">
+                        <input 
+                            type="text" 
+                            id="locationSearch" 
+                            class="search-input" 
+                            placeholder="Ej: Barrio Hogar Santa Cruz..."
+                        >
+                        <button class="search-btn" onclick="searchLocation()">🔍</button>
+                    </div>
+                    <div id="suggestions" class="suggestions"></div>
+                </div>
+
+                <div class="risk-factors">
+                    <h3>🚨 Factores de Riesgo</h3>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                            <input type="checkbox" id="salinizado" value="salinizado">
+                            <label for="salinizado">Suelo Salinizado</label>
+                            <span class="risk-badge risk-high">ALTO</span>
+                        </div>
+                        <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                            <input type="checkbox" id="erosion" value="erosion">
+                            <label for="erosion">Erosión del Suelo</label>
+                            <span class="risk-badge risk-high">ALTO</span>
+                        </div>
+                        <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                            <input type="checkbox" id="inundacion" value="inundacion">
+                            <label for="inundacion">Riesgo de Inundación</label>
+                            <span class="risk-badge risk-high">ALTO</span>
+                        </div>
+                        <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                            <input type="checkbox" id="aguasEstancadas" value="aguasEstancadas">
+                            <label for="aguasEstancadas">Aguas Estancadas</label>
+                            <span class="risk-badge risk-medium">MEDIO</span>
+                        </div>
+                        <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                            <input type="checkbox" id="aridez" value="aridez">
+                            <label for="aridez">Aridez Climática</label>
+                            <span class="risk-badge risk-medium">MEDIO</span>
+                        </div>
+                        <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                            <input type="checkbox" id="contaminacion" value="contaminacion">
+                            <label for="contaminacion">Contaminación Petrolera</label>
+                            <span class="risk-badge risk-high">ALTO</span>
+                        </div>
+                        <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                            <input type="checkbox" id="bajafertilidad" value="bajafertilidad">
+                            <label for="bajafertilidad">Baja Fertilidad</label>
+                            <span class="risk-badge risk-medium">MEDIO</span>
+                        </div>
+                        <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                            <input type="checkbox" id="topografia" value="topografia">
+                            <label for="topografia">Topografía Accidentada</label>
+                            <span class="risk-badge risk-medium">MEDIO</span>
+                        </div>
+                        <div class="checkbox-item" onclick="toggleCheckbox(this)">
+                            <input type="checkbox" id="quemas" value="quemas">
+                            <label for="quemas">Áreas Quemadas</label>
+                            <span class="risk-badge risk-high">ALTO</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="analyze-btn" onclick="analyzeRisks()" id="analyzeBtn" disabled>
+                    📊 Analizar Zona de Riesgo
+                </button>
+            </div>
+
+            <div class="map-container">
+                <div id="map"></div>
+                
+                <div class="legend">
+                    <h4>📊 Leyenda</h4>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #dc2626;"></div>
+                        <span>Riesgo Alto</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #d97706;"></div>
+                        <span>Riesgo Medio</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #059669;"></div>
+                        <span>Riesgo Bajo</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #2563eb;"></div>
+                        <span>Ubicación</span>
+                    </div>
+                </div>
+
+                <div id="resultsPanel" class="results-panel">
+                    <h3>
+                        📋 Resultados
+                        <button class="close-btn" onclick="closeResults()">×</button>
+                    </h3>
+                    <div id="resultsContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

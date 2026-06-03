@@ -119,7 +119,7 @@ gis-risk-zulia/
 
 ## 🌍 Live Demo
 
-> Currently runs on localhost. Deployment coming soon.
+> Local deployment — contact for a walkthrough or demo video.
 
 ---
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://*.tile.openstreetmap.org https://geocode-api.arcgis.com data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com; connect-src 'self' https://geocode-api.arcgis.com https://*.tile.openstreetmap.org https://cdnjs.cloudflare.com http://localhost:3000;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://*.tile.openstreetmap.org https://geocode-api.arcgis.com data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com; connect-src 'self' https://geocode-api.arcgis.com https://*.tile.openstreetmap.org https://cdnjs.cloudflare.com http://localhost:3000 https://rest.isric.org https://power.larc.nasa.gov https://api.opentopodata.org https://overpass-api.de https://firms.modaps.eosdis.nasa.gov https://api.gis-risk.dev;">
     <title>Sistema GIS Profesional - Estado Zulia</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
     <link rel="stylesheet" href="sig-pro-styles.css">
@@ -11,13 +11,15 @@
 </head>
 <body>
     <div class="container">
+        <div id="sidebarBackdrop" class="sidebar-backdrop" onclick="closeSidebar()"></div>
         <header>
             <div class="header-content">
+                <button id="sidebarToggleBtn" class="sidebar-toggle-btn" onclick="toggleSidebar()" aria-label="Abrir filtros">☰</button>
                 <div class="logo-section">
                     <div class="logo-icon">🗺️</div>
                     <div>
                         <h1>Sistema de Información Geográfica</h1>
-                        <p class="subtitle">Análisis de Zonas de Riesgo - Estado Zulia, Venezuela</p>
+                        <p class="subtitle">Análisis de Zonas de Riesgo — Estado Zulia y cobertura mundial</p>
                     </div>
                 </div>
                 <div class="user-section">
@@ -29,6 +31,9 @@
                         <button class="btn-admin" id="btn-admin-panel" style="display: none;" onclick="goToAdminPanel()">
                             ⚙️ Panel Admin
                         </button>
+                        <button class="btn-admin" id="btn-analista-panel" style="display: none;" onclick="goToAnalistaPanel()">
+                            📊 Mi Panel
+                        </button>
                         <button class="btn-logout" onclick="handleLogout()">Cerrar Sesión</button>
                     </div>
                 </div>
@@ -37,6 +42,7 @@
 
         <div class="main-content">
             <div class="search-panel">
+                <button class="sidebar-close-btn" onclick="closeSidebar()" aria-label="Cerrar filtros">✕</button>
                 <div class="search-section">
                     <h2>🔍 Búsqueda de Ubicación</h2>
                     <div class="search-input-wrapper">
@@ -47,18 +53,10 @@
                 </div>
 
                 <div class="filters-section">
-                    <div class="filter-group">
-                        <label class="filter-label">Factores de Riesgo</label>
-                        <div id="riskTags" class="tags-container"></div>
-                    </div>
-                    <div class="filter-group">
-                        <label class="filter-label">Nivel de Severidad</label>
-                        <div id="severityTags" class="tags-container"></div>
-                    </div>
-                    <div class="filter-group">
-                        <label class="filter-label">Tipo de Impacto</label>
-                        <div id="impactTags" class="tags-container"></div>
-                    </div>
+                    <div class="filter-group accordion-group" id="riskGroup"></div>
+                    <div class="filter-group accordion-group" id="severityGroup"></div>
+                    <div class="filter-group accordion-group" id="impactGroup"></div>
+
                     <div id="selectedFiltersSection" class="selected-filters-section" style="display: none;">
                         <label class="filter-label">Filtros Activos</label>
                         <div id="selectedTags" class="selected-tags-container"></div>
@@ -103,6 +101,11 @@
     </div>
 
     <script src="api-client.js"></script>
+    <script src="validacion-cientifica.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <script src="exportar-reportes.js"></script>
+    <script src="config.js"></script>
     <script src="sig-pro.js"></script>
 </body>
 </html>

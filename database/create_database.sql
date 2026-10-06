@@ -6,7 +6,6 @@
 
 -- Habilitar extensión PostGIS para funcionalidades geoespaciales
 CREATE EXTENSION IF NOT EXISTS postgis;
-ALTER USER postgres WITH PASSWORD 'RETIRADA';
 
 -- Verificar versión de PostGIS
 SELECT PostGIS_Version();
@@ -208,7 +207,7 @@ EXECUTE FUNCTION registrar_procesamiento_solicitud();
 -- Crear usuario administrador inicial (contraseña: admin123)
 -- Hash generado con bcrypt para 'admin123'
 INSERT INTO usuarios (username, email, password_hash, rol) VALUES
-('admin', 'admin@gisrisk.com', '$2b$10$8K1p/a0dL6kcPhRKPWKiOeqhcNvSY7.Y7iFxJC5q7CqZJQ3.v6wAi', 'administrador');
+('admin', 'admin@gisrisk.com', 'CAMBIAR_HASH', 'administrador');
 
 -- ============================================================================
 -- VISTAS ÚTILES

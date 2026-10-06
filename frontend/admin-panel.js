@@ -59,6 +59,10 @@ function setupNavigation() {
                 cargarHistorialSolicitudes();
             } else if (sectionName === 'usuarios') {
                 cargarUsuarios();
+            } else if (sectionName === 'factores') {
+                cargarFactores();
+            } else if (sectionName === 'mis-analisis') {
+                cargarMisAnalisis();
             }
         });
     });
@@ -431,12 +435,229 @@ function handleLogout() {
     }
 }
 
+// ========== FACTORES DE RIESGO ==========
+async function cargarFactores() {
+    const container = document.getElementById('factores-container');
+    container.innerHTML = '<div class="loading"></div>';
+
+    try {
+        const response = await ApiClient.listarFactoresAdmin();
+        if (response.success && response.factores) {
+            container.innerHTML = response.factores.map(f => crearCardFactor(f)).join('');
+        } else {
+            container.innerHTML = '<p style="color:var(--danger);text-align:center;">Error al cargar factores</p>';
+        }
+    } catch (error) {
+        container.innerHTML = '<p style="color:var(--danger);text-align:center;">Error de conexión</p>';
+    }
+}
+
+function crearCardFactor(factor) {
+    const nivelBadge = factor.nivel === 'high'
+        ? '<span class="card-badge" style="background:#fee2e2;color:#991b1b;">ALTO</span>'
+        : '<span class="card-badge" style="background:#fed7aa;color:#c2410c;">MEDIO</span>';
+
+    const estadoBadge = factor.activo
+        ? '<span class="card-badge badge-aprobada">Activo</span>'
+        : '<span class="card-badge badge-rechazada">Inactivo</span>';
+
+    const accionBtn = factor.activo
+        ? `<button class="btn-card btn-deactivate" onclick="toggleFactor(${factor.id}, false)">Desactivar</button>`
+        : `<button class="btn-card btn-activate" onclick="toggleFactor(${factor.id}, true)">Activar</button>`;
+
+    return `
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">${factor.nombre}</div>
+                    <div class="card-subtitle">${factor.categoria || 'general'}</div>
+                </div>
+                ${nivelBadge}
+            </div>
+            <div class="card-body">
+                <div class="card-info">
+                    <div class="info-row">
+                        <span class="info-label">Estado:</span>
+                        <span class="info-value">${estadoBadge}</span>
+                    </div>
+                    <div class="info-row" style="flex-direction:column;">
+                        <span class="info-label">Descripción:</span>
+                        <span class="info-value" style="margin-top:4px;">${factor.descripcion || '—'}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                ${accionBtn}
+            </div>
+        </div>
+    `;
+}
+
+async function verificarSimilitud() {
+    const nombre = document.getElementById('factor-nombre').value.trim();
+    if (!nombre) { alert('Ingresa un nombre primero'); return; }
+
+    const response = await ApiClient.verificarSimilitudFactor(nombre);
+    const warningDiv = document.getElementById('similitud-warning');
+
+    if (response.success && response.tieneSimilares) {
+        warningDiv.style.display = 'block';
+        warningDiv.innerHTML = `<strong>⚠️ Factores similares encontrados:</strong><br>` +
+            response.similares.map(s => `• ${s.nombre} (${s.similitud}% similar)`).join('<br>');
+    } else {
+        warningDiv.style.display = 'block';
+        warningDiv.innerHTML = '<strong style="color:#059669;">✅ No se encontraron factores similares. Puedes crear este factor con seguridad.</strong>';
+    }
+}
+
+async function crearFactor(forzar) {
+    const nombre = document.getElementById('factor-nombre').value.trim();
+    const nivel = document.getElementById('factor-nivel').value;
+    const categoria = document.getElementById('factor-categoria').value.trim();
+    const descripcion = document.getElementById('factor-descripcion').value.trim();
+
+    if (!nombre) { alert('El nombre es obligatorio'); return; }
+
+    const response = await ApiClient.crearFactor({ nombre, nivel, categoria, descripcion, forzar });
+
+    if (response.success) {
+        alert('Factor creado correctamente');
+        document.getElementById('factor-nombre').value = '';
+        document.getElementById('factor-categoria').value = '';
+        document.getElementById('factor-descripcion').value = '';
+        document.getElementById('similitud-warning').style.display = 'none';
+        cargarFactores();
+    } else if (response.requiereConfirmacion) {
+        const similares = response.similares.map(s => `• ${s.nombre} (${s.similitud}% similar)`).join('\n');
+        if (confirm(`Se encontraron factores similares:\n${similares}\n\n¿Crear de todas formas?`)) {
+            await crearFactor(true);
+        }
+    } else {
+        alert('Error: ' + (response.message || response.error || 'Error desconocido'));
+    }
+}
+
+async function toggleFactor(id, activar) {
+    const accion = activar ? 'activar' : 'desactivar';
+    if (!confirm(`¿Estás seguro de ${accion} este factor?`)) return;
+
+    const response = activar ? await ApiClient.activarFactor(id) : await ApiClient.desactivarFactor(id);
+    if (response.success) {
+        cargarFactores();
+    } else {
+        alert('Error: ' + (response.error || 'Error desconocido'));
+    }
+}
+
+// ========== MIS ANÁLISIS GUARDADOS ==========
+async function cargarMisAnalisis() {
+    const container = document.getElementById('mis-analisis-container');
+    const empty = document.getElementById('empty-mis-analisis');
+    container.innerHTML = '<div class="loading"></div>';
+
+    const response = await ApiClient.listarUbicaciones();
+    if (!response.success) {
+        container.innerHTML = '<p style="color:var(--danger);text-align:center;">Error al cargar los análisis.</p>';
+        return;
+    }
+
+    const ubicaciones = response.ubicaciones || [];
+    document.getElementById('badge-mis-analisis').textContent = ubicaciones.length;
+
+    if (ubicaciones.length === 0) {
+        container.innerHTML = '';
+        empty.style.display = 'flex';
+        return;
+    }
+
+    empty.style.display = 'none';
+    container.innerHTML = ubicaciones.map(u => crearCardAnalisis(u)).join('');
+}
+
+function crearCardAnalisis(u) {
+    const factores = Array.isArray(u.factores) ? u.factores : (u.factores ? JSON.parse(u.factores) : []);
+    const validacion = u.validacion ? (typeof u.validacion === 'string' ? JSON.parse(u.validacion) : u.validacion) : null;
+    const fecha = new Date(u.fecha_guardado).toLocaleString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+    const factoresHtml = factores.length > 0
+        ? factores.map(f => `<span class="card-badge" style="background:${f.level === 'high' ? '#fee2e2' : '#fed7aa'};color:${f.level === 'high' ? '#991b1b' : '#c2410c'};margin:2px;">${f.name || f.nombre || ''}</span>`).join(' ')
+        : '<span style="font-size:0.82em;color:#94a3b8;">Sin factores</span>';
+
+    const validacionHtml = validacion && validacion.validados && validacion.validados.length > 0
+        ? `<div style="margin-top:10px;padding:10px;background:#f0fdf4;border-radius:8px;font-size:0.8em;color:#166534;">
+            <strong>🔬 Validación Científica${validacion.porcentaje !== null && validacion.porcentaje !== undefined ? ' — ' + validacion.porcentaje + '% coincidencia' : ''}</strong><br>
+            ${validacion.validados.map(v => {
+                const iconos = { coincide: '✅', parcial: '⚠️', no_coincide: '❌', sin_datos: '➖' };
+                return `${iconos[v.veredicto] || '➖'} <strong>${v.nombre}</strong>: ${v.detalle}`;
+            }).join('<br>')}
+           </div>`
+        : '';
+
+    return `
+        <div class="card" id="analisis-card-${u.id}">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">📍 ${u.nombre}</div>
+                    <div class="card-subtitle">${u.lat}N, ${Math.abs(u.lng)}W${u.municipio ? ' · ' + u.municipio : ''}</div>
+                </div>
+                <span class="card-badge" style="background:${u.color_riesgo || '#64748b'};color:white;font-weight:700;">${u.nivel_riesgo || 'N/D'}</span>
+            </div>
+            <div class="card-body">
+                <div style="margin-bottom:8px;"><strong style="font-size:0.82em;color:#475569;">Factores (${factores.length}):</strong><br>${factoresHtml}</div>
+                ${u.recomendacion ? `<div style="background:#fef3c7;padding:8px 10px;border-radius:8px;font-size:0.82em;color:#92400e;margin:8px 0;">${u.recomendacion}</div>` : ''}
+                ${validacionHtml}
+                <div style="margin-top:12px;">
+                    <label style="font-size:0.82em;font-weight:600;color:#475569;display:block;margin-bottom:5px;">📝 Notas</label>
+                    <textarea id="notas-analisis-${u.id}" style="width:100%;min-height:65px;border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-size:0.85em;font-family:inherit;resize:vertical;">${u.notas || ''}</textarea>
+                </div>
+                <div style="font-size:0.75em;color:#94a3b8;margin-top:6px;">Guardado el ${fecha}</div>
+            </div>
+            <div class="card-footer">
+                <button class="btn-card btn-approve" onclick="guardarNotasAnalisis(${u.id})">💾 Guardar Notas</button>
+                <button class="btn-card btn-reject" onclick="eliminarAnalisisAdmin(${u.id}, '${u.nombre.replace(/'/g, "\\'")}')">🗑️ Eliminar</button>
+            </div>
+        </div>
+    `;
+}
+
+async function guardarNotasAnalisis(id) {
+    const textarea = document.getElementById('notas-analisis-' + id);
+    if (!textarea) return;
+    const response = await ApiClient.actualizarNotas(id, textarea.value);
+    if (response.success) {
+        alert('Notas guardadas correctamente.');
+    } else {
+        alert('Error al guardar notas.');
+    }
+}
+
+async function eliminarAnalisisAdmin(id, nombre) {
+    if (!confirm('¿Eliminar el análisis de "' + nombre + '"? Esta acción no se puede deshacer.')) return;
+    const response = await ApiClient.eliminarUbicacion(id);
+    if (response.success) {
+        const card = document.getElementById('analisis-card-' + id);
+        if (card) card.remove();
+        const restantes = document.querySelectorAll('[id^="analisis-card-"]').length;
+        document.getElementById('badge-mis-analisis').textContent = restantes;
+        if (restantes === 0) document.getElementById('empty-mis-analisis').style.display = 'flex';
+    } else {
+        alert('No se pudo eliminar. Intenta de nuevo.');
+    }
+}
+
 // Hacer funciones globales para uso en onclick
+window.cargarMisAnalisis = cargarMisAnalisis;
+window.guardarNotasAnalisis = guardarNotasAnalisis;
+window.eliminarAnalisisAdmin = eliminarAnalisisAdmin;
 window.darDelegacion = darDelegacion;
 window.quitarDelegacion = quitarDelegacion;
 window.cargarSolicitudesPendientes = cargarSolicitudesPendientes;
 window.cargarHistorialSolicitudes = cargarHistorialSolicitudes;
 window.cargarUsuarios = cargarUsuarios;
+window.cargarFactores = cargarFactores;
+window.verificarSimilitud = verificarSimilitud;
+window.crearFactor = crearFactor;
+window.toggleFactor = toggleFactor;
 window.abrirModalAprobar = abrirModalAprobar;
 window.abrirModalRechazar = abrirModalRechazar;
 window.cerrarModal = cerrarModal;

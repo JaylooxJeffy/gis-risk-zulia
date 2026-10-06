@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Analista - GIS Risk Zulia</title>
+    <link rel="stylesheet" href="admin-panel-styles.css">
+    <style>
+        .riesgo-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 700;
+            color: white;
+            letter-spacing: 0.5px;
+        }
+        .card-coordenadas {
+            font-size: 0.8em;
+            color: #64748b;
+            margin: 4px 0 10px;
+        }
+        .card-factores {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 10px 0;
+        }
+        .factor-tag {
+            padding: 3px 10px;
+            background: #e0e7ff;
+            color: #3730a3;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: 500;
+        }
+        .factor-tag.alto {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        .notas-area {
+            width: 100%;
+            min-height: 70px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-size: 0.85em;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+        .notas-area:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+        .notas-label {
+            font-size: 0.82em;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 5px;
+            display: block;
+        }
+        .card-fecha {
+            font-size: 0.75em;
+            color: #94a3b8;
+            margin-top: 6px;
+        }
+        .card-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 14px;
+        }
+        .btn-guardar-notas {
+            padding: 7px 16px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.82em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-guardar-notas:hover { opacity: 0.88; }
+        .btn-eliminar-ubi {
+            padding: 7px 14px;
+            background: #fee2e2;
+            color: #dc2626;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.82em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-eliminar-ubi:hover { background: #fecaca; }
+        .validacion-mini {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f0fdf4;
+            border-radius: 8px;
+            font-size: 0.8em;
+            color: #166534;
+        }
+        .validacion-mini-titulo {
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .v-item { margin-bottom: 3px; }
+    </style>
+</head>
+<body>
+    <header class="admin-header">
+        <div class="header-content">
+            <div class="logo-section">
+                <div class="logo-icon">📊</div>
+                <div>
+                    <h1>Panel de Analista</h1>
+                    <p class="subtitle">GIS Risk Zulia</p>
+                </div>
+            </div>
+            <div class="user-section">
+                <div class="user-info">
+                    <span class="user-name" id="analista-username">Analista</span>
+                    <span class="user-role">Analista</span>
+                </div>
+                <button class="btn-logout" onclick="handleLogout()">Cerrar Sesión</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="admin-container">
+        <aside class="sidebar">
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-section="ubicaciones">
+                    <svg class="nav-icon" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Mis Análisis Guardados</span>
+                    <span class="badge" id="badge-ubicaciones">0</span>
+                </a>
+
+                <a href="sig-zulia-pro.html" class="nav-item">
+                    <svg class="nav-icon" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Ir al Sistema GIS</span>
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <section id="section-ubicaciones" class="content-section active">
+                <div class="section-header">
+                    <h2>Mis Análisis Guardados</h2>
+                    <button class="btn-refresh" onclick="cargarUbicaciones()">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Actualizar
+                    </button>
+                </div>
+
+                <div id="ubicaciones-container" class="cards-container"></div>
+
+                <div id="empty-ubicaciones" class="empty-state" style="display:none;">
+                    <svg width="100" height="100" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <h3>No tienes análisis guardados</h3>
+                    <p>Realiza un análisis en el visor GIS y guárdalo con el botón 💾 Guardar Análisis</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="api-client.js"></script>
+    <script src="analista-panel.js"></script>
+</body>
+</html>

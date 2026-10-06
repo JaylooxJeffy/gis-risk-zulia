@@ -43,6 +43,12 @@ function setupUserTypeSelector() {
     const specialForm = document.getElementById('register-special-form');
     const completeForm = document.getElementById('complete-registration-form');
     const rolInput = document.getElementById('reg-special-rol');
+    const specialTitle = specialForm.querySelector('h2.form-title');
+
+    const titulos = {
+        analista: 'Solicitud de Analista',
+        administrador: 'Solicitud de Administrador'
+    };
 
     typeBtns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -50,15 +56,16 @@ function setupUserTypeSelector() {
             typeBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
 
+            completeForm.style.display = 'none';
+
             if (type === 'consultor') {
-                consultorForm.classList.add('active');
-                specialForm.classList.remove('active');
-                completeForm.style.display = 'none';
+                consultorForm.style.display = 'block';
+                specialForm.style.display = 'none';
             } else {
-                consultorForm.classList.remove('active');
-                specialForm.classList.add('active');
-                completeForm.style.display = 'none';
+                consultorForm.style.display = 'none';
+                specialForm.style.display = 'block';
                 rolInput.value = type;
+                if (specialTitle) specialTitle.textContent = titulos[type] || 'Solicitud de Registro';
             }
         });
     });
@@ -82,7 +89,16 @@ function setupForms() {
     if (btnBack) {
         btnBack.addEventListener('click', () => {
             document.getElementById('complete-registration-form').style.display = 'none';
-            document.getElementById('register-special-form').classList.add('active');
+            document.getElementById('register-special-form').style.display = 'block';
+        });
+    }
+
+    const btnYaTengoCodigo = document.getElementById('btn-ya-tengo-codigo');
+    if (btnYaTengoCodigo) {
+        btnYaTengoCodigo.addEventListener('click', () => {
+            document.getElementById('register-special-form').style.display = 'none';
+            document.getElementById('register-consultor-form').style.display = 'none';
+            document.getElementById('complete-registration-form').style.display = 'block';
         });
     }
 }
@@ -168,12 +184,7 @@ async function handleSolicitudRegistro(e) {
         const response = await ApiClient.solicitarRegistro(username, email, rol);
 
         if (response.success) {
-            showMessage(messageEl, 'Solicitud enviada. Recibirás un código por email si es aprobada.', 'success');
-
-            setTimeout(() => {
-                document.getElementById('register-special-form').classList.remove('active');
-                document.getElementById('complete-registration-form').style.display = 'block';
-            }, 2000);
+            showMessage(messageEl, '✅ Solicitud enviada. Cuando el administrador la apruebe recibirás un código por email. Vuelve aquí y usa el botón "¿Ya tienes un código de acceso?" para completar tu registro.', 'success');
         } else {
             showMessage(messageEl, response.message || 'Error al enviar solicitud', 'error');
         }

@@ -8,13 +8,22 @@
     <link rel="stylesheet" href="auth-styles.css">
 </head>
 <body>
-    <div class="animated-background">
-        <div class="gradient-orb orb-1"></div>
-        <div class="gradient-orb orb-2"></div>
-        <div class="gradient-orb orb-3"></div>
-    </div>
+    <header class="auth-page-header">
+        <a href="index.html" class="auth-header-logo">
+            <span class="auth-header-icon">🗺️</span>
+            <div>
+                <span class="auth-header-name">GIS Risk Zulia</span>
+                <span class="auth-header-sub">Sistema de Información Geográfica</span>
+            </div>
+        </a>
+        <a href="index.html" class="auth-header-back">← Inicio</a>
+    </header>
 
-    <div class="auth-container">
+    <main class="auth-main">
+        <div class="bg-carousel" id="bgCarousel"></div>
+        <div class="bg-overlay"></div>
+
+        <div class="auth-container">
         <div class="auth-header">
             <div class="logo-circle">🗺️</div>
             <h1>GIS Risk Zulia</h1>
@@ -144,6 +153,9 @@
                 </div>
                 <input type="hidden" id="reg-special-rol" value="analista">
                 <button type="submit" class="auth-btn secondary"><span>Enviar Solicitud</span></button>
+                <button type="button" class="auth-btn text" id="btn-ya-tengo-codigo">
+                    ¿Ya tienes un código de acceso? Úsalo aquí →
+                </button>
                 <div id="register-special-message" class="message"></div>
             </form>
 
@@ -171,11 +183,45 @@
             </form>
         </div>
 
-        <a href="index.html" class="back-home">← Volver al Inicio</a>
-    </div>
+        <a href="index.html" class="back-home" style="display:none;">← Volver al Inicio</a>
+        </div>
+    </main>
+
+    <footer class="auth-page-footer">
+        &copy; 2025-2026 GIS Risk Zulia &mdash; Sistema de Información Geográfica &mdash; Cobertura mundial
+    </footer>
 
     <script src="api-client.js"></script>
     <script src="auth.js"></script>
     <script src="auth-recovery.js"></script>
+    <script>
+        // ===== CARRUSEL DE FONDO =====
+        const bgImages = [
+            'img/bg-venezuela.png',
+            'img/bg-mexico.png',
+            'img/bg-maracaibo.png',
+            'img/bg-chapingo.png'
+        ];
+
+        const carousel = document.getElementById('bgCarousel');
+        let currentSlide = 0;
+
+        bgImages.forEach((url, i) => {
+            const slide = document.createElement('div');
+            slide.className = 'bg-slide' + (i === 0 ? ' active' : '');
+            slide.style.backgroundImage = `url('${url}')`;
+            carousel.appendChild(slide);
+        });
+
+        const slides = carousel.querySelectorAll('.bg-slide');
+
+        function nextSlide() {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (currentSlide + 1) % slides.length;
+            slides[currentSlide].classList.add('active');
+        }
+
+        setInterval(nextSlide, 7000);
+    </script>
 </body>
 </html>

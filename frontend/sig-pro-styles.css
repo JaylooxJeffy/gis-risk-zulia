@@ -616,6 +616,110 @@ header {
     line-height: 1.6;
 }
 
+/* ========== ACCORDION ========== */
+.accordion-group {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.accordion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: var(--light);
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s ease;
+}
+
+.accordion-header:hover { background: #e8f0fe; }
+
+.accordion-arrow {
+    font-size: 0.8em;
+    color: var(--secondary);
+}
+
+.accordion-body {
+    padding: 10px 12px 12px;
+    border-top: 1px solid var(--border);
+}
+
+.acc-count {
+    font-size: 0.8em;
+    color: var(--secondary);
+    font-weight: 600;
+}
+
+.filter-search {
+    width: 100%;
+    padding: 7px 10px;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.85em;
+    margin-bottom: 8px;
+    transition: border-color 0.2s ease;
+    background: white;
+}
+
+.filter-search:focus {
+    outline: none;
+    border-color: var(--secondary);
+}
+
+.btn-select-all {
+    padding: 3px 10px;
+    font-size: 0.75em;
+    font-weight: 600;
+    background: var(--secondary);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-select-all:hover { opacity: 0.85; transform: translateY(-1px); }
+.btn-deselect-all { opacity: 0.6; }
+
+/* ========== TOGGLE DEL SIDEBAR (móvil/tablet) ========== */
+.sidebar-toggle-btn {
+    display: none;
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    font-size: 1.2em;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.sidebar-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.5);
+    z-index: 1400;
+}
+
+.sidebar-backdrop.active {
+    display: block;
+}
+
+.sidebar-close-btn {
+    display: none;
+}
+
 /* ========== SCROLLBARS ========== */
 ::-webkit-scrollbar {
     width: 8px;
@@ -636,22 +740,98 @@ header {
 
 /* ========== RESPONSIVE ========== */
 @media (max-width: 1024px) {
-    .main-content {
-        grid-template-columns: 1fr;
+    header {
+        position: relative;
     }
-    
-    .search-panel {
-        max-height: 50vh;
-        border-right: none;
-        border-bottom: 1px solid var(--border);
+
+    .sidebar-toggle-btn {
+        display: flex;
+        position: absolute;
+        top: 18px;
+        left: 30px;
     }
-    
+
     .header-content {
         flex-direction: column;
         gap: 1rem;
     }
-    
+
+    .logo-section {
+        padding-left: 52px;
+    }
+
+    .main-content {
+        grid-template-columns: 1fr;
+        position: relative;
+    }
+
+    .search-panel {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: min(85vw, 360px);
+        max-height: 100vh;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        z-index: 1450;
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.25);
+        border-right: none;
+    }
+
+    .search-panel.open {
+        transform: translateX(0);
+    }
+
+    .sidebar-close-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: sticky;
+        top: 0;
+        margin-left: auto;
+        margin-right: 14px;
+        margin-top: 14px;
+        width: 34px;
+        height: 34px;
+        background: var(--light);
+        border: none;
+        border-radius: 50%;
+        font-size: 1.1em;
+        color: var(--dark);
+        cursor: pointer;
+        z-index: 10;
+    }
+
+    .map-container {
+        width: 100%;
+        height: 100%;
+    }
+
     .results-panel {
-        max-width: calc(100% - 40px);
+        left: 14px;
+        right: 14px;
+        max-width: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .logo-section h1 {
+        font-size: 1.15em;
+    }
+
+    .subtitle {
+        font-size: 0.78em;
+    }
+
+    .search-panel {
+        width: 88vw;
+    }
+
+    .results-panel {
+        left: 10px;
+        right: 10px;
+        top: 14px;
+        max-height: calc(100% - 28px);
     }
 }

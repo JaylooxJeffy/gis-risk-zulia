@@ -1,1 +1,34 @@
+# Dependencias
+node_modules/
+
+# Secretos y configuración local
+.env
+.env.*
+!.env.example
+frontend/config.js
+frontend/AdminAccount
+
+# Archivos de trabajo, notas y basura
 Basura/
+Borrador/
+*.zip
+*.rar
+*.exe
+Nuevo documento de texto.txt
+backend/Backend.txt
+backend/Sugerencias.txt
+backend/crear_archivos.js
+frontend/test-load.html
+
+# Datos pesados de HWSD (se descargan aparte, ver README)
+data/
+*.bil
+*.mdb
+
+# Sistema, editor y logs
+.DS_Store
+Thumbs.db
+.vscode/
+*.log
+backend/routes/recoveryRoutes.js
+backend/routes/recoveryRoutes.js

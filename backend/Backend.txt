@@ -1,1 +1,1 @@
-cd ~/Documents/gis_risk_zulia/backend && node server.js
+cd ~/Documents/Projects/gis_risk_zulia/backend && node server.js

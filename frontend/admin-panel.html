@@ -61,6 +61,22 @@
                     </svg>
                     <span>Ir al Sistema GIS</span>
                 </a>
+
+                <a href="#" class="nav-item" data-section="factores">
+                    <svg class="nav-icon" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Factores de Riesgo</span>
+                </a>
+
+                <a href="#" class="nav-item" data-section="mis-analisis">
+                    <svg class="nav-icon" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Mis Análisis</span>
+                    <span class="badge" id="badge-mis-analisis">0</span>
+                </a>
             </nav>
         </aside>
 
@@ -124,8 +140,72 @@
                     <!-- Los usuarios se cargarán dinámicamente aquí -->
                 </div>
             </section>
-        </main>
-    </div>
+            <!-- Sección: Factores de Riesgo -->
+            <section id="section-factores" class="content-section">
+                <div class="section-header">
+                    <h2>Factores de Riesgo</h2>
+                    <button class="btn-refresh" onclick="cargarFactores()">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Actualizar
+                    </button>
+                </div>
+
+                <!-- Formulario nuevo factor -->
+                <div id="form-nuevo-factor" style="background:white;padding:20px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.08);margin-bottom:24px;">
+                    <h3 style="color:var(--primary);margin-bottom:16px;">➕ Nuevo Factor de Riesgo</h3>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                        <div>
+                            <label style="font-size:0.85em;font-weight:600;color:var(--dark);display:block;margin-bottom:4px;">Nombre *</label>
+                            <input type="text" id="factor-nombre" placeholder="Ej: Suelo Blando" style="width:100%;padding:10px;border:2px solid var(--border);border-radius:8px;font-size:0.9em;">
+                        </div>
+                        <div>
+                            <label style="font-size:0.85em;font-weight:600;color:var(--dark);display:block;margin-bottom:4px;">Nivel *</label>
+                            <select id="factor-nivel" style="width:100%;padding:10px;border:2px solid var(--border);border-radius:8px;font-size:0.9em;">
+                                <option value="high">Alto</option>
+                                <option value="medium">Medio</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size:0.85em;font-weight:600;color:var(--dark);display:block;margin-bottom:4px;">Categoría</label>
+                            <input type="text" id="factor-categoria" placeholder="Ej: soil, water, climate" style="width:100%;padding:10px;border:2px solid var(--border);border-radius:8px;font-size:0.9em;">
+                        </div>
+                        <div>
+                            <label style="font-size:0.85em;font-weight:600;color:var(--dark);display:block;margin-bottom:4px;">Descripción</label>
+                            <input type="text" id="factor-descripcion" placeholder="Descripción breve del factor" style="width:100%;padding:10px;border:2px solid var(--border);border-radius:8px;font-size:0.9em;">
+                        </div>
+                    </div>
+                    <div id="similitud-warning" style="display:none;background:#fef3c7;padding:12px;border-radius:8px;margin-top:12px;border-left:4px solid #f59e0b;"></div>
+                    <div style="margin-top:16px;display:flex;gap:10px;">
+                        <button onclick="crearFactor(false)" style="padding:10px 20px;background:var(--success);color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;">Crear Factor</button>
+                        <button onclick="verificarSimilitud()" style="padding:10px 20px;background:var(--warning);color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;">Verificar Similitud</button>
+                    </div>
+                </div>
+
+                <div id="factores-container" class="cards-container"></div>
+            </section>
+
+    <!-- Sección: Mis Análisis -->
+            <section id="section-mis-analisis" class="content-section">
+                <div class="section-header">
+                    <h2>Mis Análisis Guardados</h2>
+                    <button class="btn-refresh" onclick="cargarMisAnalisis()">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Actualizar
+                    </button>
+                </div>
+                <div id="mis-analisis-container" class="cards-container"></div>
+                <div id="empty-mis-analisis" class="empty-state" style="display:none;">
+                    <svg width="100" height="100" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <h3>No tienes análisis guardados</h3>
+                    <p>Realiza un análisis en el visor GIS y guárdalo con el botón 💾 Guardar Análisis</p>
+                </div>
+            </section>
 
     <!-- Modal para Aprobar Solicitud -->
     <div id="modal-aprobar" class="modal">

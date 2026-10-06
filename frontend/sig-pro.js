@@ -4,7 +4,7 @@
 // ============================================================================
 
 // ========== API KEY ARCGIS ==========
-const ARCGIS_API_KEY = 'CLAVE_ARCGIS_RETIRADA';
+const ARCGIS_API_KEY = (window.APP_CONFIG || {}).ARCGIS_API_KEY || '';
 const ARCGIS_SUGGEST_URL = 'https://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer/suggest';
 const ARCGIS_FIND_URL = 'https://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates';
 
@@ -19,6 +19,8 @@ let selectedImpacts = new Set();
 let currentUser = null;
 let analysisHistory = [];
 let searchTimeout = null;
+let riskFactors = []; // Se carga desde la API
+let lastAnalysis = null; // Snapshot exacto del ultimo analisis mostrado (para exportar PDF/Word)
 
 // ========== ZONAS PREDETERMINADAS ==========
 const predefinedZones = [
@@ -34,22 +36,7 @@ const predefinedZones = [
     { name: 'Rosario de Perija', description: 'Municipio Rosario de Perija' }
 ];
 
-// ========== FACTORES DE RIESGO ==========
-const riskFactors = [
-    { id: 'salinizado', name: 'Suelo Salinizado', level: 'high', category: 'soil' },
-    { id: 'erosion', name: 'Erosion del Suelo', level: 'high', category: 'soil' },
-    { id: 'inundacion', name: 'Riesgo de Inundacion', level: 'high', category: 'water' },
-    { id: 'aguasEstancadas', name: 'Aguas Estancadas', level: 'medium', category: 'water' },
-    { id: 'aridez', name: 'Aridez Climatica', level: 'medium', category: 'climate' },
-    { id: 'contaminacion', name: 'Contaminacion Petrolera', level: 'high', category: 'pollution' },
-    { id: 'bajafertilidad', name: 'Baja Fertilidad', level: 'medium', category: 'soil' },
-    { id: 'topografia', name: 'Topografia Accidentada', level: 'medium', category: 'terrain' },
-    { id: 'quemas', name: 'Areas Quemadas', level: 'high', category: 'fire' },
-    { id: 'deforestacion', name: 'Deforestacion', level: 'high', category: 'environmental' },
-    { id: 'sequia', name: 'Sequia', level: 'high', category: 'climate' },
-    { id: 'plagas', name: 'Plagas y Enfermedades', level: 'medium', category: 'biological' }
-];
-
+// severityLevels e impactTypes se mantienen estáticos
 const severityLevels = [
     { id: 'muy-alto', name: 'Muy Alto' },
     { id: 'alto', name: 'Alto' },
@@ -62,7 +49,8 @@ const impactTypes = [
     { id: 'agua', name: 'Agua' },
     { id: 'clima', name: 'Clima' },
     { id: 'biodiversidad', name: 'Biodiversidad' },
-    { id: 'agricultura', name: 'Agricultura' }
+    { id: 'agricultura', name: 'Agricultura' },
+    { id: 'mineria', name: 'Minería' }
 ];
 
 // ========== INICIALIZACION ==========
@@ -90,6 +78,22 @@ async function initializeApp() {
         return;
     }
 
+    // Cargar factores desde la API
+    try {
+        const resp = await ApiClient.listarFactores();
+        if (resp.success && resp.factores) {
+            riskFactors = resp.factores.map(f => ({
+                id: String(f.id),
+                name: f.nombre,
+                level: f.nivel,
+                category: f.categoria,
+                descripcion: f.descripcion
+            }));
+        }
+    } catch (e) {
+        console.error('Error cargando factores:', e);
+    }
+
     initMap();
     renderTags();
     setupEventListeners();
@@ -102,6 +106,9 @@ function displayUserInfo() {
 
     if (currentUser.rol === 'administrador') {
         document.getElementById('btn-admin-panel').style.display = 'flex';
+    }
+    if (currentUser.rol === 'analista') {
+        document.getElementById('btn-analista-panel').style.display = 'flex';
     }
 }
 
@@ -141,13 +148,26 @@ function addExportButton() {
         btnContainer.appendChild(analyzeBtn);
     }
 
-    const exportBtn = document.createElement('button');
-    exportBtn.id = 'exportPdfBtn';
-    exportBtn.innerHTML = 'Exportar Analisis';
-    exportBtn.disabled = true;
-    exportBtn.style.cssText = 'width:100%;padding:12px;background:linear-gradient(135deg,#7c3aed,#5b21b6);color:white;border:none;border-radius:10px;font-size:0.95em;font-weight:600;cursor:pointer;transition:all 0.3s ease;';
-    exportBtn.onclick = exportToPDF;
-    btnContainer.appendChild(exportBtn);
+    const exportRow = document.createElement('div');
+    exportRow.style.cssText = 'display:flex;gap:10px;';
+
+    const exportPdfBtn = document.createElement('button');
+    exportPdfBtn.id = 'exportPdfBtn';
+    exportPdfBtn.innerHTML = '📄 Exportar PDF';
+    exportPdfBtn.disabled = true;
+    exportPdfBtn.style.cssText = 'flex:1;padding:12px;background:linear-gradient(135deg,#7c3aed,#5b21b6);color:white;border:none;border-radius:10px;font-size:0.9em;font-weight:600;cursor:pointer;transition:all 0.3s ease;';
+    exportPdfBtn.onclick = function () { window.exportarReportePDF(); };
+
+    const exportWordBtn = document.createElement('button');
+    exportWordBtn.id = 'exportWordBtn';
+    exportWordBtn.innerHTML = '📝 Exportar Word';
+    exportWordBtn.disabled = true;
+    exportWordBtn.style.cssText = 'flex:1;padding:12px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:white;border:none;border-radius:10px;font-size:0.9em;font-weight:600;cursor:pointer;transition:all 0.3s ease;';
+    exportWordBtn.onclick = function () { window.exportarReporteWord(); };
+
+    exportRow.appendChild(exportPdfBtn);
+    exportRow.appendChild(exportWordBtn);
+    btnContainer.appendChild(exportRow);
 }
 
 function addHistoryButton() {
@@ -166,49 +186,25 @@ function addDataManagementFeatures() {
     console.log('Funcionalidades de administrador habilitadas');
 }
 
-// ========== EXPORTAR ==========
-function exportToPDF() {
-    if (!currentLocation) {
-        alert('No hay analisis para exportar');
-        return;
-    }
-
-    const risks = Array.from(selectedRisks).map(id => riskFactors.find(f => f.id === id));
-    const highRiskCount = risks.filter(r => r.level === 'high').length;
-    let overallRisk;
-
-    if (highRiskCount >= 4) overallRisk = 'MUY ALTO';
-    else if (highRiskCount >= 2) overallRisk = 'ALTO';
-    else if (highRiskCount >= 1) overallRisk = 'MODERADO';
-    else overallRisk = 'BAJO';
-
-    let reportContent = 'REPORTE DE ANALISIS DE RIESGO - GIS ZULIA\n\n';
-    reportContent += 'UBICACION: ' + currentLocation.name + '\n';
-    reportContent += 'DIRECCION: ' + (currentLocation.address || currentLocation.name) + '\n';
-    reportContent += 'COORDENADAS: ' + currentLocation.lat.toFixed(6) + 'N, ' + Math.abs(currentLocation.lng).toFixed(6) + 'W\n';
-    reportContent += 'FUENTE: ArcGIS World Geocoding Service\n\n';
-    reportContent += 'NIVEL DE RIESGO GENERAL: ' + overallRisk + '\n\n';
-    reportContent += 'FACTORES DE RIESGO (' + risks.length + '):\n';
-
-    risks.forEach((risk, index) => {
-        reportContent += (index + 1) + '. ' + risk.name + ' [' + (risk.level === 'high' ? 'ALTO' : 'MEDIO') + ']\n';
-    });
-
-    reportContent += '\nGenerado por: ' + currentUser.username + ' (' + capitalizeRole(currentUser.rol) + ')\n';
-    reportContent += 'Fecha: ' + new Date().toLocaleString('es-ES') + '\n';
-
-    const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'Reporte_' + currentLocation.name.replace(/ /g, '_') + '_' + new Date().getTime() + '.txt';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
-    alert('Reporte exportado correctamente');
+// ========== SIDEBAR RESPONSIVE (móvil/tablet) ==========
+function toggleSidebar() {
+    const panel = document.querySelector('.search-panel');
+    const backdrop = document.getElementById('sidebarBackdrop');
+    if (!panel) return;
+    const abierto = panel.classList.toggle('open');
+    if (backdrop) backdrop.classList.toggle('active', abierto);
 }
+
+function closeSidebar() {
+    const panel = document.querySelector('.search-panel');
+    const backdrop = document.getElementById('sidebarBackdrop');
+    if (panel) panel.classList.remove('open');
+    if (backdrop) backdrop.classList.remove('active');
+}
+
+// ========== EXPORTAR ==========
+// Las funciones exportarReportePDF() y exportarReporteWord() viven en
+// exportar-reportes.js y leen de `lastAnalysis` (ver displayResults() abajo).
 
 // ========== HISTORIAL ==========
 function showHistory() {
@@ -253,21 +249,96 @@ function initMap() {
 
 // ========== RENDERIZAR TAGS ==========
 function renderTags() {
-    const riskTagsContainer = document.getElementById('riskTags');
-    const severityTagsContainer = document.getElementById('severityTags');
-    const impactTagsContainer = document.getElementById('impactTags');
+    renderAccordionSection('riskGroup', 'riskTags', 'Factores de Riesgo', riskFactors, 'risk', true);
+    renderAccordionSection('severityGroup', 'severityTags', 'Nivel de Severidad', severityLevels, 'severity', false);
+    renderAccordionSection('impactGroup', 'impactTags', 'Tipo de Impacto', impactTypes, 'impact', false);
+}
 
-    riskFactors.forEach(factor => {
-        riskTagsContainer.appendChild(createTag(factor.name, factor.id, 'risk', factor.level));
-    });
+function renderAccordionSection(groupId, containerId, label, items, type, showRiskLevel) {
+    const filterGroup = document.getElementById(groupId);
+    if (!filterGroup) return;
 
-    severityLevels.forEach(level => {
-        severityTagsContainer.appendChild(createTag(level.name, level.id, 'severity'));
-    });
+    filterGroup.innerHTML = `
+        <div class="accordion-header" onclick="toggleAccordion('${groupId}')">
+            <span class="filter-label" style="margin:0;">${label} <span class="acc-count" id="count-${type}"></span></span>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <button class="btn-select-all" onclick="event.stopPropagation(); selectAll('${containerId}', '${type}')">Todos</button>
+                <button class="btn-select-all btn-deselect-all" onclick="event.stopPropagation(); deselectAll('${containerId}', '${type}')">Ninguno</button>
+                <span class="accordion-arrow" id="arrow-${groupId}">▼</span>
+            </div>
+        </div>
+        <div class="accordion-body" id="body-${groupId}">
+            <input type="text" class="filter-search" placeholder="Buscar..." oninput="filtrarTags('${containerId}', this.value)">
+            <div id="${containerId}" class="tags-container"></div>
+        </div>
+    `;
 
-    impactTypes.forEach(impact => {
-        impactTagsContainer.appendChild(createTag(impact.name, impact.id, 'impact'));
+    const container = document.getElementById(containerId);
+    items.forEach(item => {
+        container.appendChild(createTag(item.name, item.id, type, showRiskLevel ? item.level : null));
     });
+}
+
+function toggleAccordion(groupId) {
+    const body = document.getElementById('body-' + groupId);
+    const arrow = document.getElementById('arrow-' + groupId);
+    const isOpen = body.style.display !== 'none';
+    body.style.display = isOpen ? 'none' : 'block';
+    arrow.textContent = isOpen ? '▶' : '▼';
+}
+
+function filtrarTags(containerId, query) {
+    const container = document.getElementById(containerId);
+    const tags = container.querySelectorAll('.tag');
+    const q = query.toLowerCase();
+    tags.forEach(tag => {
+        tag.style.display = tag.textContent.toLowerCase().includes(q) ? 'inline-flex' : 'none';
+    });
+}
+
+function selectAll(containerId, type) {
+    const container = document.getElementById(containerId);
+    const tags = container.querySelectorAll('.tag');
+    tags.forEach(tag => {
+        if (!tag.classList.contains('selected') && tag.style.display !== 'none') {
+            tag.classList.add('selected');
+            const id = tag.dataset.id;
+            const text = tag.textContent.replace('x', '').trim();
+            if (type === 'risk') selectedRisks.add(id);
+            if (type === 'severity') selectedSeverity.add(id);
+            if (type === 'impact') selectedImpacts.add(id);
+            addSelectedTag(id, text, type);
+        }
+    });
+    updateSelectedFilters();
+    updateAnalyzeButton();
+    updateCountBadge(type);
+}
+
+function deselectAll(containerId, type) {
+    const container = document.getElementById(containerId);
+    const tags = container.querySelectorAll('.tag.selected');
+    tags.forEach(tag => {
+        tag.classList.remove('selected');
+        const id = tag.dataset.id;
+        if (type === 'risk') selectedRisks.delete(id);
+        if (type === 'severity') selectedSeverity.delete(id);
+        if (type === 'impact') selectedImpacts.delete(id);
+        removeSelectedTag(id);
+    });
+    updateSelectedFilters();
+    updateAnalyzeButton();
+    updateCountBadge(type);
+}
+
+function updateCountBadge(type) {
+    const countEl = document.getElementById('count-' + type);
+    if (!countEl) return;
+    let count = 0;
+    if (type === 'risk') count = selectedRisks.size;
+    if (type === 'severity') count = selectedSeverity.size;
+    if (type === 'impact') count = selectedImpacts.size;
+    countEl.textContent = count > 0 ? '(' + count + ')' : '';
 }
 
 function createTag(text, id, type, riskLevel) {
@@ -304,9 +375,11 @@ function toggleTag(tag, id, type, text) {
 
     updateSelectedFilters();
     updateAnalyzeButton();
+    updateCountBadge(type);
 }
 
 function addSelectedTag(id, text, type) {
+    if (document.querySelector('.selected-tag[data-id="' + id + '"]')) return;
     const container = document.getElementById('selectedTags');
     const tag = document.createElement('div');
     tag.className = 'selected-tag';
@@ -330,6 +403,7 @@ function removeTagById(id, type) {
         removeSelectedTag(id);
         updateSelectedFilters();
         updateAnalyzeButton();
+        updateCountBadge(type);
     }
 }
 
@@ -341,11 +415,13 @@ function updateSelectedFilters() {
 
 function updateAnalyzeButton() {
     const btn = document.getElementById('analyzeBtn');
-    const exportBtn = document.getElementById('exportPdfBtn');
+    const exportPdfBtn = document.getElementById('exportPdfBtn');
+    const exportWordBtn = document.getElementById('exportWordBtn');
     const hasLocation = currentLocation !== null;
     const hasFilters = selectedRisks.size > 0;
     btn.disabled = !hasLocation || !hasFilters;
-    if (exportBtn) exportBtn.disabled = !hasLocation || !hasFilters;
+    if (exportPdfBtn) exportPdfBtn.disabled = !hasLocation || !hasFilters;
+    if (exportWordBtn) exportWordBtn.disabled = !hasLocation || !hasFilters;
 }
 
 // ========== MAPA DE PAÍSES ==========
@@ -589,31 +665,22 @@ function analyzeRisks() {
     }
 
     const risks = Array.from(selectedRisks).map(id => {
-        const factor = riskFactors.find(f => f.id === id);
-        return { id: factor.id, name: factor.name, level: factor.level, category: factor.category };
-    });
+        const factor = riskFactors.find(f => String(f.id) === String(id));
+        return factor ? { id: factor.id, name: factor.name, level: factor.level, category: factor.category, descripcion: factor.descripcion } : null;
+    }).filter(Boolean);
 
     displayResults(risks);
+
+    // En movil/tablet, cierra el drawer de filtros al analizar para que el
+    // mapa y los resultados queden visibles de inmediato.
+    if (window.innerWidth <= 1024) closeSidebar();
 }
 
 function displayResults(risks) {
     const resultsContent = document.getElementById('resultsContent');
     const resultsPanel = document.getElementById('resultsPanel');
 
-    const descriptions = {
-        'salinizado': 'Acumulacion excesiva de sales que afecta la capacidad del suelo para soportar cultivos.',
-        'erosion': 'Perdida progresiva de suelo fertil por accion del agua, viento o actividad humana.',
-        'inundacion': 'Zona susceptible a encharcamientos y desbordamientos durante temporadas de lluvia.',
-        'aguasEstancadas': 'Presencia de agua acumulada que favorece la proliferacion de vectores de enfermedades.',
-        'aridez': 'Deficit hidrico severo que limita el desarrollo de actividades agricolas.',
-        'contaminacion': 'Degradacion del suelo por presencia de hidrocarburos y derivados del petroleo.',
-        'bajafertilidad': 'Suelos pobres en nutrientes esenciales para el crecimiento de plantas.',
-        'topografia': 'Terrenos con pendientes pronunciadas que dificultan el uso agricola.',
-        'quemas': 'Areas afectadas por incendios que han degradado la capa vegetal y organica.',
-        'deforestacion': 'Perdida de cobertura forestal que aumenta la vulnerabilidad del ecosistema.',
-        'sequia': 'Periodos prolongados sin precipitaciones que afectan la disponibilidad de agua.',
-        'plagas': 'Presencia de organismos que danan cultivos y reducen la productividad.'
-    };
+    // Usar descripción directamente desde el factor (viene de la DB)
 
     const highRiskCount = risks.filter(r => r.level === 'high').length;
     let overallRisk, riskColor;
@@ -631,7 +698,7 @@ function displayResults(risks) {
         riskItemsHtml += '<span class="result-item-badge ' + (risk.level === 'high' ? 'badge-high' : 'badge-medium') + '">';
         riskItemsHtml += (risk.level === 'high' ? 'ALTO' : 'MEDIO') + '</span>';
         riskItemsHtml += '</div>';
-        riskItemsHtml += '<div class="result-item-desc">' + (descriptions[risk.id] || '') + '</div>';
+        riskItemsHtml += '<div class="result-item-desc">' + (risk.descripcion || '') + '</div>';
         riskItemsHtml += '</div>';
     });
 
@@ -643,6 +710,22 @@ function displayResults(risks) {
     } else {
         recommendation = 'La zona presenta condiciones aceptables. Se recomienda monitoreo periodico y buenas practicas agricolas.';
     }
+
+    // Snapshot exacto de este analisis, usado por exportar-reportes.js. Se
+    // captura aqui (no en el momento del export) para que el reporte siempre
+    // coincida con lo que el usuario vio en pantalla, sin importar si despues
+    // cambia los filtros sin volver a analizar.
+    lastAnalysis = {
+        location: Object.assign({}, currentLocation),
+        risks: risks,
+        overallRisk: overallRisk,
+        riskColor: riskColor,
+        recommendation: recommendation,
+        validacion: null,
+        generadoEn: new Date(),
+        usuario: currentUser ? currentUser.username : 'Desconocido',
+        rol: currentUser ? currentUser.rol : ''
+    };
 
     resultsContent.innerHTML =
         '<div class="result-location">' +
@@ -659,7 +742,33 @@ function displayResults(risks) {
         '</div></div>' +
         '<div class="results-list"><h4>Factores de Riesgo Detectados (' + risks.length + ')</h4>' +
         riskItemsHtml + '</div>' +
-        '<div class="recommendations"><h4>Recomendaciones Tecnicas</h4><p>' + recommendation + '</p></div>';
+        '<div class="recommendations"><h4>Recomendaciones Tecnicas</h4><p>' + recommendation + '</p></div>' +
+        '<div id="validacionCientificaSection" class="validacion-cientifica-section">' +
+        '<h4>🔬 Validación con Datos Científicos</h4>' +
+        '<p class="validacion-loading">Consultando SoilGrids (ISRIC) y NASA POWER...</p>' +
+        '</div>' +
+        ((currentUser.rol === 'analista' || currentUser.rol === 'administrador')
+            ? '<div style="margin-top:16px;padding-top:14px;border-top:1px dashed #cbd5e1;">' +
+              '<button id="btnGuardarAnalisis" onclick="guardarAnalisis()" style="width:100%;padding:11px;background:linear-gradient(135deg,#0891b2,#0e7490);color:white;border:none;border-radius:10px;font-size:0.9em;font-weight:600;cursor:pointer;transition:all 0.3s ease;">💾 Guardar Análisis</button>' +
+              '</div>'
+            : '');
+
+    // ========== VALIDACION CIENTIFICA (SoilGrids + NASA POWER) ==========
+    // Corre en paralelo sin bloquear el resto del panel de resultados.
+    if (typeof validarCientificamente === 'function') {
+        const analysisRef = lastAnalysis; // referencia fija por si se vuelve a analizar antes de que esto resuelva
+        validarCientificamente(currentLocation.lat, currentLocation.lng, risks)
+            .then(resultadoValidacion => {
+                analysisRef.validacion = resultadoValidacion;
+                const seccion = document.getElementById('validacionCientificaSection');
+                if (seccion) seccion.innerHTML = renderValidacionHTML(resultadoValidacion);
+            })
+            .catch(err => {
+                console.error('Error en validacion cientifica:', err);
+                const seccion = document.getElementById('validacionCientificaSection');
+                if (seccion) seccion.innerHTML = '<h4>🔬 Validación con Datos Científicos</h4><p class="validacion-info">No se pudo completar la validacion en este momento.</p>';
+            });
+    }
 
     resultsPanel.classList.add('active');
 
@@ -685,6 +794,46 @@ function goToAdminPanel() {
     window.location.href = 'admin-panel.html';
 }
 
+function goToAnalistaPanel() {
+    window.location.href = 'analista-panel.html';
+}
+
+async function guardarAnalisis() {
+    if (!lastAnalysis) { alert('No hay análisis para guardar.'); return; }
+    const btn = document.getElementById('btnGuardarAnalisis');
+    if (btn) { btn.disabled = true; btn.textContent = '💾 Guardando...'; }
+
+    const datos = {
+        nombre: lastAnalysis.location.name,
+        direccion: lastAnalysis.location.address || null,
+        municipio: lastAnalysis.location.municipality || null,
+        lat: lastAnalysis.location.lat,
+        lng: lastAnalysis.location.lng,
+        notas: '',
+        factores: lastAnalysis.risks,
+        nivel_riesgo: lastAnalysis.overallRisk,
+        color_riesgo: lastAnalysis.riskColor,
+        recomendacion: lastAnalysis.recommendation,
+        validacion: lastAnalysis.validacion || null
+    };
+
+    const response = await ApiClient.guardarUbicacion(datos);
+    if (btn) {
+        if (response.success) {
+            btn.textContent = '✅ Guardado';
+            btn.style.background = 'linear-gradient(135deg,#059669,#047857)';
+            setTimeout(() => {
+                btn.textContent = '💾 Guardar Análisis';
+                btn.style.background = '';
+                btn.disabled = false;
+            }, 3000);
+        } else {
+            btn.textContent = '❌ Error al guardar';
+            btn.disabled = false;
+        }
+    }
+}
+
 function handleLogout() {
     if (confirm('Estas seguro de cerrar sesion?')) {
         ApiClient.logout();
@@ -698,6 +847,9 @@ window.removeTagById = removeTagById;
 window.analyzeRisks = analyzeRisks;
 window.closeResults = closeResults;
 window.goToAdminPanel = goToAdminPanel;
+window.goToAnalistaPanel = goToAnalistaPanel;
+window.guardarAnalisis = guardarAnalisis;
 window.handleLogout = handleLogout;
-window.exportToPDF = exportToPDF;
+window.toggleSidebar = toggleSidebar;
+window.closeSidebar = closeSidebar;
 window.showHistory = showHistory;

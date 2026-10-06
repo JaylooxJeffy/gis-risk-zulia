@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const AdminController = require('../controllers/adminController');
+const FactoresController = require('../controllers/factoresController');
 const { verificarToken, verificarAdmin } = require('../middleware/auth');
 
 router.use(verificarToken);
@@ -18,5 +19,12 @@ router.patch('/usuarios/:id/activar', AdminController.activarUsuario);
 router.patch('/usuarios/:id/delegar', AdminController.delegarAdmin);
 router.patch('/usuarios/:id/quitar-delegacion', AdminController.quitarDelegacionAdmin);
 router.get('/mis-permisos', AdminController.obtenerMisPermisos);
+
+router.get('/factores', FactoresController.listarTodosFactores);
+router.post('/factores/verificar-similitud', FactoresController.verificarSimilitud);
+router.post('/factores', FactoresController.crearFactor);
+router.put('/factores/:id', FactoresController.editarFactor);
+router.patch('/factores/:id/desactivar', FactoresController.desactivarFactor);
+router.patch('/factores/:id/activar', FactoresController.activarFactor);
 
 module.exports = router;

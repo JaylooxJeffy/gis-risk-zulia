@@ -13,6 +13,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 const recoveryRoutes = require('./routes/recovery');
+const factoresRoutes = require('./routes/factores');
+const analistaRoutes = require('./routes/analista');
+const firmsRoutes = require('./routes/firms');
+const hwsdRoutes = require('./routes/hwsd');
+app.use('/api/hwsd', hwsdRoutes);
 
 app.get('/', (req, res) => {
   res.json({
@@ -37,6 +42,9 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/recovery', recoveryRoutes);
+app.use('/api/factores', factoresRoutes);
+app.use('/api/analista', analistaRoutes);
+app.use('/api/firms', firmsRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Ruta no encontrada' });

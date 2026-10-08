@@ -1,0 +1,319 @@
+{
+  "fecha": "2026-10-07T21:57:52.995Z",
+  "servidor": "http://localhost:3000",
+  "node": "v22.22.2",
+  "resultados": [
+    {
+      "id": "CP-01",
+      "proceso": "1.4",
+      "descripcion": "Inicio de sesión con credenciales válidas",
+      "esperado": "HTTP 200, success=true, token y rol \"administrador\"",
+      "obtenido": "HTTP 200 · rol=administrador",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-02",
+      "proceso": "1.4",
+      "descripcion": "Inicio de sesión con contraseña incorrecta",
+      "esperado": "HTTP 401 · \"Credenciales inválidas\"",
+      "obtenido": "HTTP 401 · \"Credenciales inválidas\"",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-03",
+      "proceso": "1.4",
+      "descripcion": "Inicio de sesión sin contraseña",
+      "esperado": "HTTP 400 · \"Email y contraseña son obligatorios\"",
+      "obtenido": "HTTP 400 · \"Email y contraseña son obligatorios\"",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-04",
+      "proceso": "1.1",
+      "descripcion": "Registro de un usuario consultor nuevo",
+      "esperado": "HTTP 201, success=true y token de sesión",
+      "obtenido": "HTTP 201 · \"Usuario consultor registrado exitosamente\"",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-05",
+      "proceso": "1.1",
+      "descripcion": "Registro de consultor con un correo ya registrado",
+      "esperado": "HTTP 400 · \"Ya existe una cuenta de consultor con este email\"",
+      "obtenido": "HTTP 400 · \"Ya existe una cuenta de consultor con este email\"",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-06",
+      "proceso": "1.1",
+      "descripcion": "Registro de consultor con campos incompletos",
+      "esperado": "HTTP 400 · \"Todos los campos son obligatorios\"",
+      "obtenido": "HTTP 400 · \"Todos los campos son obligatorios\"",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-07",
+      "proceso": "1.2",
+      "descripcion": "Solicitud de registro con rol analista",
+      "esperado": "HTTP 201 (solicitud pendiente creada)",
+      "obtenido": "HTTP 201 · \"Solicitud enviada exitosamente\"",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-08",
+      "proceso": "1.2",
+      "descripcion": "Segunda solicitud pendiente con el mismo correo y rol",
+      "esperado": "HTTP 400 · \"Ya tienes una solicitud pendiente de analista\"",
+      "obtenido": "HTTP 400 · \"Ya tienes una solicitud pendiente de analista\"",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-09",
+      "proceso": "1.2",
+      "descripcion": "Solicitud con un rol que no existe",
+      "esperado": "HTTP 400 · \"Rol inválido\"",
+      "obtenido": "HTTP 400 · \"Rol inválido\"",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-10",
+      "proceso": "1.3",
+      "descripcion": "Completar el registro con un código que no es válido",
+      "esperado": "HTTP 400 (código rechazado)",
+      "obtenido": "HTTP 400 · \"Código no encontrado\"",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-11",
+      "proceso": "1.5",
+      "descripcion": "Recuperación de contraseña con un correo que no existe",
+      "esperado": "HTTP 200 con mensaje genérico (no revela si la cuenta existe)",
+      "obtenido": "HTTP 200 · \"Si existe una cuenta con este email, recibirás instrucciones de recuperación.\"",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-12",
+      "proceso": "1.6",
+      "descripcion": "Cambiar contraseña sin haber iniciado sesión (sin token)",
+      "esperado": "HTTP 401 · \"No token\"; la contraseña no cambia",
+      "obtenido": "HTTP 401 · \"No token\" · login con la clave original: HTTP 200",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-13",
+      "proceso": "1.6",
+      "descripcion": "Cambiar contraseña con una clave de menos de 6 caracteres",
+      "esperado": "HTTP 400 · \"La contraseña debe tener al menos 6 caracteres\"",
+      "obtenido": "HTTP 400 · \"La contraseña debe tener al menos 6 caracteres\"",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-14",
+      "proceso": "1.6",
+      "descripcion": "Cambiar contraseña con sesión iniciada y una clave válida",
+      "esperado": "HTTP 200; el login funciona con la clave nueva y falla con la anterior",
+      "obtenido": "HTTP 200 · \"Contraseña actualizada correctamente\" · login clave nueva: HTTP 200 · login clave anterior: HTTP 401",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-15",
+      "proceso": "1.6",
+      "descripcion": "Un usuario con sesión intenta cambiar la contraseña de otra cuenta (userId ajeno)",
+      "esperado": "Solo cambia la clave de la cuenta del token; la otra cuenta no se altera",
+      "obtenido": "HTTP 200 · \"Contraseña actualizada correctamente\" · el administrador sigue entrando con su clave: HTTP 200 · la cuenta del token sí cambió su clave: HTTP 200",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-16",
+      "proceso": "Seguridad",
+      "descripcion": "Consultar una ruta protegida sin token",
+      "esperado": "HTTP 401 · \"No token\"",
+      "obtenido": "HTTP 401 · \"No token\"",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-17",
+      "proceso": "Seguridad",
+      "descripcion": "Consultar una ruta protegida con un token inválido",
+      "esperado": "HTTP 401 · \"Token inválido\"",
+      "obtenido": "HTTP 401 · \"Token inválido\"",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-18",
+      "proceso": "Seguridad",
+      "descripcion": "Un consultor intenta usar una ruta de administración",
+      "esperado": "HTTP 403 · \"Requiere admin\"",
+      "obtenido": "HTTP 403 · \"Requiere admin\"",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-19",
+      "proceso": "2.4",
+      "descripcion": "El administrador lista los usuarios",
+      "esperado": "HTTP 200 con la lista de usuarios (incluye a los consultores creados)",
+      "obtenido": "HTTP 200 · total=3",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-20",
+      "proceso": "2.1",
+      "descripcion": "El administrador lista las solicitudes de registro pendientes",
+      "esperado": "HTTP 200 e incluye la solicitud de CP-07",
+      "obtenido": "HTTP 200 · total=1",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-21",
+      "proceso": "2.4",
+      "descripcion": "El administrador desactiva una cuenta y esa cuenta ya no puede iniciar sesión",
+      "esperado": "Desactivar: HTTP 200; luego el login falla con HTTP 401",
+      "obtenido": "login antes: HTTP 200 · HTTP 200 · \"Usuario desactivado\" · login de la cuenta desactivada: HTTP 401",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-22",
+      "proceso": "2.4",
+      "descripcion": "El administrador reactiva la cuenta y vuelve a poder iniciar sesión",
+      "esperado": "Activar: HTTP 200; luego el login responde HTTP 200",
+      "obtenido": "HTTP 200 · \"Usuario activado\" · login de la cuenta reactivada: HTTP 200",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-23",
+      "proceso": "2.5",
+      "descripcion": "Consulta de permisos del administrador principal",
+      "esperado": "HTTP 200 con esPrincipal=true (su correo coincide con ADMIN_EMAIL)",
+      "obtenido": "HTTP 200 · esPrincipal=true",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-24",
+      "proceso": "3.1",
+      "descripcion": "Un usuario autenticado lista los factores activos",
+      "esperado": "HTTP 200 con al menos un factor",
+      "obtenido": "HTTP 200 · factores activos=23",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-25",
+      "proceso": "3.2",
+      "descripcion": "El administrador crea un factor de riesgo nuevo",
+      "esperado": "HTTP 201 con el factor creado",
+      "obtenido": "HTTP 201 · id=24",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-26",
+      "proceso": "3.2",
+      "descripcion": "Crear un factor con el mismo nombre que uno existente",
+      "esperado": "HTTP 409 con la lista de factores similares",
+      "obtenido": "HTTP 409 · \"Factores similares encontrados\"",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-27",
+      "proceso": "3.2",
+      "descripcion": "Un consultor intenta crear un factor",
+      "esperado": "HTTP 403 · \"Requiere admin\"",
+      "obtenido": "HTTP 403 · \"Requiere admin\"",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-28",
+      "proceso": "3.2",
+      "descripcion": "El administrador edita el factor creado",
+      "esperado": "HTTP 200 con el factor actualizado",
+      "obtenido": "HTTP 200 · nivel=high",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-29",
+      "proceso": "3.3",
+      "descripcion": "Un factor desactivado deja de aparecer en el listado de activos",
+      "esperado": "Desactivar: HTTP 200; el factor no aparece en GET /api/factores",
+      "obtenido": "HTTP 200 · \"Factor desactivado\" · aparece en el listado: no",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-30",
+      "proceso": "3.3",
+      "descripcion": "Un factor reactivado vuelve a aparecer en el listado de activos",
+      "esperado": "Activar: HTTP 200; el factor aparece en GET /api/factores",
+      "obtenido": "HTTP 200 · \"Factor activado\" · aparece en el listado: sí",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-31",
+      "proceso": "5.1",
+      "descripcion": "Guardar una ubicación analizada",
+      "esperado": "HTTP 201 con la ubicación guardada",
+      "obtenido": "HTTP 201 · id=1",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-32",
+      "proceso": "5.1",
+      "descripcion": "Guardar una ubicación sin nombre ni coordenadas",
+      "esperado": "HTTP 400 · \"Nombre y coordenadas son obligatorios\"",
+      "obtenido": "HTTP 400 · \"Nombre y coordenadas son obligatorios\"",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-33",
+      "proceso": "5.2",
+      "descripcion": "Listar las ubicaciones guardadas del propio usuario",
+      "esperado": "HTTP 200 e incluye la ubicación de CP-31",
+      "obtenido": "HTTP 200 · total=1",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-34",
+      "proceso": "5.3",
+      "descripcion": "Actualizar las notas de una ubicación propia",
+      "esperado": "HTTP 200 con las notas nuevas",
+      "obtenido": "HTTP 200 · notas=\"Nota de prueba\"",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-35",
+      "proceso": "5.4",
+      "descripcion": "Otro usuario no ve ni puede eliminar una ubicación ajena",
+      "esperado": "Su listado no la incluye y DELETE responde HTTP 404",
+      "obtenido": "listado ajeno la incluye: no · HTTP 404 · \"Ubicación no encontrada\"",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-36",
+      "proceso": "5.4",
+      "descripcion": "Eliminar una ubicación propia",
+      "esperado": "HTTP 200 y la ubicación desaparece del listado",
+      "obtenido": "HTTP 200 · \"Ubicación eliminada\" · sigue en el listado: no",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-37",
+      "proceso": "4.4",
+      "descripcion": "Consultar salinidad del suelo (HWSD) sin token",
+      "esperado": "HTTP 401 · \"No token\"",
+      "obtenido": "HTTP 401 · \"No token\"",
+      "estado": "APROBADO"
+    },
+    {
+      "id": "CP-38",
+      "proceso": "4.4",
+      "descripcion": "Consultar salinidad del suelo (HWSD) con sesión y coordenadas del Zulia",
+      "esperado": "HTTP 200 con nivel de salinidad (requiere los datos HWSD cargados en la base)",
+      "obtenido": "HTTP 500 · \"Error consultando HWSD en base de datos local\" · la base no tiene cargados los datos HWSD (opcional)",
+      "estado": "OMITIDO"
+    },
+    {
+      "id": "CP-39",
+      "proceso": "4.4",
+      "descripcion": "Consultar incendios (NASA FIRMS) sin token",
+      "esperado": "HTTP 401 · \"No token\"",
+      "obtenido": "HTTP 401 · \"No token\"",
+      "estado": "APROBADO"
+    }
+  ]
+}
